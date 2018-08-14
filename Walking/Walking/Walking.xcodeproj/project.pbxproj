@@ -14,6 +14,9 @@
 		17EB3CDA2122219A00E96AF9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 17EB3CD82122219A00E96AF9 /* LaunchScreen.storyboard */; };
 		17EB3CE42122224B00E96AF9 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 17EB3CE32122224B00E96AF9 /* CloudKit.framework */; };
 		17EB3CE8212222D800E96AF9 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 17EB3CE7212222D800E96AF9 /* MapKit.framework */; };
+		17EB3CEC2122451000E96AF9 /* LocationThing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17EB3CEB2122451000E96AF9 /* LocationThing.swift */; };
+		17EB3CEE21224BEF00E96AF9 /* EdgeInsetLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17EB3CED21224BEF00E96AF9 /* EdgeInsetLabel.swift */; };
+		17EB3CF021224E4400E96AF9 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17EB3CEF21224E4400E96AF9 /* Colors.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +30,9 @@
 		17EB3CE12122224800E96AF9 /* Walking.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Walking.entitlements; sourceTree = "<group>"; };
 		17EB3CE32122224B00E96AF9 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		17EB3CE7212222D800E96AF9 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
+		17EB3CEB2122451000E96AF9 /* LocationThing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationThing.swift; sourceTree = "<group>"; };
+		17EB3CED21224BEF00E96AF9 /* EdgeInsetLabel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EdgeInsetLabel.swift; sourceTree = "<group>"; };
+		17EB3CEF21224E4400E96AF9 /* Colors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +70,9 @@
 			children = (
 				17EB3CCF2122219900E96AF9 /* AppDelegate.swift */,
 				17EB3CD12122219900E96AF9 /* MainView.swift */,
+				17EB3CEF21224E4400E96AF9 /* Colors.swift */,
+				17EB3CEB2122451000E96AF9 /* LocationThing.swift */,
+				17EB3CED21224BEF00E96AF9 /* EdgeInsetLabel.swift */,
 				17EB3CD32122219900E96AF9 /* Main.storyboard */,
 				17EB3CD82122219A00E96AF9 /* LaunchScreen.storyboard */,
 				17EB3CE12122224800E96AF9 /* Walking.entitlements */,
@@ -167,8 +176,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				17EB3CEC2122451000E96AF9 /* LocationThing.swift in Sources */,
+				17EB3CF021224E4400E96AF9 /* Colors.swift in Sources */,
 				17EB3CD22122219900E96AF9 /* MainView.swift in Sources */,
 				17EB3CD02122219900E96AF9 /* AppDelegate.swift in Sources */,
+				17EB3CEE21224BEF00E96AF9 /* EdgeInsetLabel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
