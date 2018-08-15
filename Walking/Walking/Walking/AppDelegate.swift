@@ -8,6 +8,7 @@
 
 import UIKit
 import CloudKit
+import SQLite3
 import UserNotifications
 
 @UIApplicationMain
@@ -23,10 +24,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     
     var cloudKeyStore: NSUbiquitousKeyValueStore!
     
+    var db: OpaquePointer? = nil
+    
     var runningInTheBackground: Bool = false
     var identifierForVendor: String!
     var deviceToken: String!
 
+    let dateFormatter = DateFormatter()
+    
     //MARK: Initialize
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
@@ -34,6 +39,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         print("\(UIDevice.current.model) \(UIDevice.current.systemName) \(UIDevice.current.localizedModel) \(UIDevice.current.name)")
         
         NotificationCenter.default.addObserver(self, selector: #selector(self.didChangeExternallyNotification(notification:)), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: self.cloudKeyStore)
+        
+        (self.window?.rootViewController as! MainView).parentView = self
         
         guard let identifierForVendor = UIDevice.current.identifierForVendor?.uuidString else { return false }
         self.identifierForVendor = identifierForVendor
@@ -56,6 +63,51 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             
         }
         
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+        dateFormatter.locale = Locale(identifier: "da_DK")
+        
+        let fileManager = FileManager.default
+        
+        let bundlePath = Bundle.main.path(forResource: "walking", ofType: ".db")
+        let destPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
+        let fullDestPath = NSURL(fileURLWithPath: destPath).appendingPathComponent("walking.db")
+        let fullDestPathString = fullDestPath!.path
+        print(fullDestPathString)
+        
+        if fileManager.fileExists(atPath: fullDestPathString) {
+            
+            print("Database is available")
+            
+            /*
+            do {
+             
+                try fileManager.removeItem(at: fullDestPath!)
+             
+             } catch {
+             
+                print(error)
+             
+                return false
+             
+             }
+            */
+            
+        } else {
+            
+            do {
+                
+                try fileManager.copyItem(atPath: bundlePath!, toPath: fullDestPathString)
+                
+            } catch {
+                
+                return false
+                
+            }
+            
+        }
+
+        self.db = self.databaseOpen()
+
         cloudKeyStore = NSUbiquitousKeyValueStore()
         cloudKeyStore.synchronize()
         
@@ -260,4 +312,171 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         
     }
     
+    //MARK: Database
+    
+    func databaseOpen() -> OpaquePointer? {
+        
+        var db: OpaquePointer? = nil
+        
+        let fileURL = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent("walking.db")
+        
+        sqlite3_shutdown()
+        sqlite3_initialize()
+        
+        print("isThreadSafe \(sqlite3_threadsafe())")
+        
+        if sqlite3_open_v2(fileURL.path, &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {
+            
+            print("Successfully opened connection to database at \(fileURL.path)")
+            
+            return db
+            
+        } else {
+            
+            print("Unable to open database. Verify that you created the directory described in the Getting Started section.")
+            
+            return nil
+            
+        }
+        
+    }
+    
+    func databaseLastID() -> Int {
+        
+        var id: Int = -1
+        var stmt: OpaquePointer? = nil
+        
+        if sqlite3_prepare_v2(db, "SELECT LAST_INSERT_ROWID();", -1, &stmt, nil) == SQLITE_OK {
+            
+            if sqlite3_step(stmt) == SQLITE_ROW {
+                
+                id = Int(sqlite3_column_int(stmt, 0))
+                
+            }
+            
+        }
+        
+        sqlite3_finalize(stmt)
+        
+        return id
+        
+    }
+    
+    func databaseInsert(object: AnyObject) -> Bool {
+        
+        var result: Bool = false
+        var query: String!
+        
+        switch object {
+            
+        case is Journey:
+            
+            print("Object is Journey")
+            
+            if let identity = object as? Journey {
+                
+                query = "INSERT INTO journey (title, starting, ending, distance, note) VALUES ('\(identity.title!)', '\(dateFormatter.string(from: Date()))', '\(dateFormatter.string(from: Date()))', '0', '\(identity.note!)');"
+                
+            }
+            
+        case is LocationNow:
+            
+            print("Object is LocationNow")
+            
+            if let identity = object as? LocationNow {
+                
+                query = "INSERT INTO position (journeyID, latitude, longitude) VALUES (\(identity.journeyID), '\(identity.latitude)', '\(identity.longitude)');"
+                
+            }
+            
+        default:
+            
+            print("Object is wrong")
+            
+        }
+        
+        var stmt: OpaquePointer? = nil
+        
+        if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+            
+            if sqlite3_step(stmt) == SQLITE_DONE {
+                
+                object.setValue(String(databaseLastID()), forKey: "id")
+                
+                result = true
+                
+            }
+            
+        }
+        
+        sqlite3_finalize(stmt)
+        
+        return result
+        
+    }
+    
+    func databaseUpdate(object: AnyObject) -> Bool {
+        
+        var result: Bool = false
+        var query: String!
+        
+        switch object {
+            
+        case is Journey:
+            
+            print("Object is Journey")
+            
+            if let identity = object as? Journey {
+                
+                query = "UPDATE journey SET title = '\(identity.title!)', ending = '\(dateFormatter.string(from: Date()))', distance = '\(identity.distance)', note = '\(identity.note!)' WHERE id = \(identity.id!);"
+                
+            }
+            
+        default:
+            
+            print("Object is wrong")
+            
+        }
+        
+        var stmt: OpaquePointer? = nil
+        
+        if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+            
+            if sqlite3_step(stmt) == SQLITE_DONE {
+                
+                result = true
+                
+            }
+            
+        }
+        
+        sqlite3_finalize(stmt)
+        
+        return result
+        
+    }
+    
+    func databaseQuery(query: String) -> Bool {
+        
+        print("\(query)")
+        
+        var result: Bool = false
+        var stmt: OpaquePointer? = nil
+        
+        if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+            
+            if sqlite3_step(stmt) == SQLITE_DONE {
+                
+                result = true
+                
+            }
+            
+        }
+        
+        sqlite3_finalize(stmt)
+        
+        return result
+        
+    }
+
 }
